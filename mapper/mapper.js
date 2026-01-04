@@ -4,35 +4,36 @@ export function mapIgDbInfoToGame(game, refs) {
     slug: game.slug,
     game: game.name,
     name_original: game.name,
-    description: game.description,
+
+    description: game.summary ?? null,
+
     released: game.first_release_date
       ? new Date(game.first_release_date * 1000).toISOString().split("T")[0]
-      : undefined,
+      : null,
 
-    background_image: refs.cover
-      ? img(refs.cover.url, "t_cover_big")
-      : undefined,
+    background_image: game.cover?.url
+      ? `https:${game.cover.url.replace("t_thumb", "t_1080p")}`
+      : null,
 
-    rating: game.total_rating
-      ? Number((game.total_rating / 20).toFixed(1))
-      : undefined,
-
+    rating: null, // IGDB не дає RAWG rating
     rating_top: 0,
-
     statusOfGame: "",
+    metacritic: null, // інший endpoint
 
-    metacritic: game.aggregated_rating,
+    genres:
+      game.genres?.map((g) => ({
+        id: g.id,
+        name: g.name,
+        slug: g.slug,
+      })) ?? [],
 
-    genres: refs.genres?.map((g) => ({
-      id: g.id,
-      name: g.name,
-      slug: slugify(g.name),
-    })),
-
-    platforms: refs.platforms?.map((p) => ({
-      id: p.id,
-      name: p.name,
-    })),
+    platforms:
+      game.platforms?.map((p) => ({
+        platform: {
+          id: p.id,
+          name: p.name,
+        },
+      })) ?? [],
 
     stores: [],
   };

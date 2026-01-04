@@ -1,6 +1,5 @@
-const igdbUrl = process.env.TWITCH_IGDB_LINK;
-
 export async function igdbWorker(endpoint, body, clientId, authToken) {
+  const igdbUrl = process.env.TWITCH_IGDB_LINK;
   const response = await fetch(`${igdbUrl}${endpoint}`, {
     method: "POST",
     headers: {
@@ -10,7 +9,6 @@ export async function igdbWorker(endpoint, body, clientId, authToken) {
     },
     body: body,
   });
-
   if (response.status !== 200)
     throw new Error(`IGDB API request failed with status ${response.status}`);
   return response.json();
