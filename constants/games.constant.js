@@ -1,0 +1,98 @@
+export const gameStatus = [
+  { id: 0, name: "Rumored" },
+  { id: 2, name: "Confirmed" },
+  { id: 3, name: "Alpha" },
+  { id: 4, name: "Beta" },
+  { id: 5, name: "Early Access" },
+  { id: 7, name: "Released" },
+];
+export const gameStores = [
+  {
+    id: 1,
+    name: "Steam",
+  },
+  {
+    id: 3,
+    name: "GiantBomb",
+  },
+  {
+    id: 5,
+    name: "GOG",
+  },
+  {
+    id: 10,
+    name: "Youtube",
+  },
+  {
+    id: 11,
+    name: "Microsoft",
+  },
+  {
+    id: 13,
+    name: "Apple",
+  },
+  {
+    id: 14,
+    name: "Twitch",
+  },
+  {
+    id: 15,
+    name: "Android",
+  },
+  {
+    id: 20,
+    name: "Amazon",
+  },
+  {
+    id: 22,
+    name: "Amazon Luna",
+  },
+  {
+    id: 23,
+    name: "Amazon ADG",
+  },
+  {
+    id: 26,
+    name: "Epic Games Store",
+  },
+  {
+    id: 28,
+    name: "Oculus",
+  },
+  {
+    id: 29,
+    name: "Utomik",
+  },
+  {
+    id: 30,
+    name: "Itchio",
+  },
+  {
+    id: 31,
+    name: "Xbox Marketplace",
+  },
+  {
+    id: 32,
+    name: "Kartridge",
+  },
+  {
+    id: 36,
+    name: "Playstation Store US",
+  },
+  {
+    id: 37,
+    name: "Focus Entertainment",
+  },
+  {
+    id: 54,
+    name: "Xbox Game Pass Ultimate Cloud",
+  },
+  {
+    id: 55,
+    name: "GameJolt",
+  },
+  {
+    id: 121,
+    name: "IGDB",
+  },
+];
