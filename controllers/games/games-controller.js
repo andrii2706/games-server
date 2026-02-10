@@ -38,7 +38,7 @@ export const getGames = async (req, res) => {
       fields id, name, slug, summary, first_release_date, total_rating, rating, rating_count,
       cover.url, genres.name, genres.slug, platforms.name, platforms.abbreviation;
       where rating > 80 & first_release_date > 1500000000;
-      sort rating desc;
+      sort first_release_date desc;
       limit 500;
     `;
     const games = await igdbWorker("/games", gamesBody, clientId, authToken);
@@ -79,8 +79,15 @@ export const getGames = async (req, res) => {
       return mapIgDbInfoToGame(game, externalForGame);
     });
 
+    const gamesInfo = Object.assign({
+      results: mappedGames,
+      esresponse: {
+        total: mappedGames.length,
+      },
+    });
+
     // 6️⃣ Відповідь фронту
-    res.status(200).json(mappedGames);
+    res.status(200).json(gamesInfo);
     console.log(`✅ /games API fetched successfully: ${games.length} games`);
   } catch (error) {
     handleIgdbError(error, res);

@@ -3,12 +3,17 @@ import "dotenv/config";
 import express from "express";
 
 import gamesRouter from "./router/games.router.js";
+import { corsMiddleware } from "./config/cors.config.js";
 
 const app = express();
 
 const port = 3000;
 
 app.use(express.json());
+
+app.use(corsMiddleware());
+
+app.set("etag", false);
 
 app.use("/api", gamesRouter);
 
