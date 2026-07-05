@@ -4,6 +4,7 @@ import {
   mapIgDbInfoToGameDetails,
 } from "../../mapper/mapper.js";
 import { gameDetailsCache, gamesCache } from "../../games-cache/games-cache.js";
+import { buildGamesFilter } from "../../filter-builder/games-filter-builder.js";
 
 const clientId = process.env.TWITCH_CLIENT_ID || "";
 const authToken = process.env.TWITCH_CLIENT_TOKEN || "";
@@ -50,13 +51,19 @@ function parseDatesRange(dates) {
 
 export const getGames = async (req, res) => {
   try {
+    const { searchClause, whereClause, sortClause } = buildGamesFilter(
+      req.query,
+    );
+
     const gamesBody = `
       fields id, name, slug, summary, first_release_date, total_rating, rating, rating_count,
       cover.url, genres.name, genres.slug, platforms.name, platforms.abbreviation;
-      where rating > 80;
-      sort first_release_date desc;
+      ${searchClause}
+      ${whereClause}
+      ${sortClause}
       limit 500;
     `;
+
     const games = await igdbWorker("/games", gamesBody, clientId, authToken);
 
     const gameIds = games.map((g) => g.id);
