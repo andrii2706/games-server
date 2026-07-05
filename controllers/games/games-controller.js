@@ -1,5 +1,9 @@
 import { igdbWorker } from "../../service/igdb.service.js";
-import { mapIgDbInfoToGame } from "../../mapper/mapper.js";
+import {
+  mapIgDbInfoToGame,
+  mapIgDbInfoToGameDetails,
+} from "../../mapper/mapper.js";
+import { gameDetailsCache } from "../../games-cache/games-cache.js";
 
 const clientId = process.env.TWITCH_CLIENT_ID || "";
 const authToken = process.env.TWITCH_CLIENT_TOKEN || "";
@@ -33,7 +37,6 @@ const handleIgdbError = (error, res) => {
 
 export const getGames = async (req, res) => {
   try {
-    // 1️⃣ Запит ігор
     const gamesBody = `
       fields id, name, slug, summary, first_release_date, total_rating, rating, rating_count,
       cover.url, genres.name, genres.slug, platforms.name, platforms.abbreviation;
@@ -43,11 +46,9 @@ export const getGames = async (req, res) => {
     `;
     const games = await igdbWorker("/games", gamesBody, clientId, authToken);
 
-    // 2️⃣ Масив ID ігор
     const gameIds = games.map((g) => g.id);
 
-    // 3️⃣ Batch-запит external_games
-    const batchSize = 50; // по 50 ігор за раз
+    const batchSize = 50;
     let externalGames = [];
 
     for (let i = 0; i < gameIds.length; i += batchSize) {
@@ -66,14 +67,12 @@ export const getGames = async (req, res) => {
       externalGames.push(...batchResult);
     }
 
-    // 4️⃣ Групування external_games по game.id
     const externalGamesByGame = {};
     externalGames.forEach((ex) => {
       if (!externalGamesByGame[ex.game]) externalGamesByGame[ex.game] = [];
       externalGamesByGame[ex.game].push(ex);
     });
 
-    // 5️⃣ Маппінг ігор
     const mappedGames = games.map((game) => {
       const externalForGame = externalGamesByGame[game.id] || [];
       return mapIgDbInfoToGame(game, externalForGame);
@@ -86,9 +85,63 @@ export const getGames = async (req, res) => {
       },
     });
 
-    // 6️⃣ Відповідь фронту
     res.status(200).json(gamesInfo);
     console.log(`✅ /games API fetched successfully: ${games.length} games`);
+  } catch (error) {
+    handleIgdbError(error, res);
+  }
+};
+
+export const getGame = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ message: "Invalid game id" });
+    }
+
+    const cacheKey = `game:${id}`;
+    const cached = gameDetailsCache.get(cacheKey);
+    if (cached) {
+      res.set("X-Cache", "HIT");
+      return res.status(200).json(cached);
+    }
+
+    const gameBody = `
+      fields id, name, slug, summary, first_release_date, updated_at,
+      rating, aggregated_rating, status,
+      cover.url, artworks.url, screenshots.url,
+      genres.name, genres.slug,
+      platforms.name, platforms.abbreviation,
+      involved_companies.developer, involved_companies.company.name,
+      involved_companies.company.slug, involved_companies.company.logo.url,
+      websites.url, websites.category,
+      keywords.name, keywords.slug,
+      videos.video_id, videos.name;
+      where id = ${id};
+    `;
+    const games = await igdbWorker("/games", gameBody, clientId, authToken);
+
+    if (!games.length) {
+      return res.status(404).json({ message: "Game not found" });
+    }
+    const game = games[0];
+
+    const externalGamesBody = `
+      fields external_game_source, game, name, url, uid;
+      where game = ${game.id};
+    `;
+    const externalGames = await igdbWorker(
+      "/external_games",
+      externalGamesBody,
+      clientId,
+      authToken,
+    );
+
+    const mappedGame = mapIgDbInfoToGameDetails(game, externalGames);
+
+    gameDetailsCache.set(cacheKey, mappedGame);
+    res.set("X-Cache", "MISS");
+    res.status(200).json(mappedGame);
   } catch (error) {
     handleIgdbError(error, res);
   }
