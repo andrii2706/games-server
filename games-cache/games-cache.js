@@ -4,3 +4,8 @@ export const gameDetailsCache = new NodeCache({
   stdTTL: 3600,
   checkperiod: 600,
 });
+
+export const gamesCache = new NodeCache({
+  stdTTL: 3600,
+  checkperiod: 600,
+});
